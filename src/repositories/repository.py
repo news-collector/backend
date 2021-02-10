@@ -20,3 +20,9 @@ class NewsRepository(Repository):
 
     def __init__(self):
         super().__init__()
+
+
+class FeedsRepository(Repository):
+
+    def __init__(self):
+        super().__init__()

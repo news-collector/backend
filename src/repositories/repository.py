@@ -14,3 +14,9 @@ class WebsiteRepository(Repository):
 
     def __init__(self):
         super().__init__()
+
+
+class NewsRepository(Repository):
+
+    def __init__(self):
+        super().__init__()

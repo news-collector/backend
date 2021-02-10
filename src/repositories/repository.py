@@ -22,7 +22,7 @@ class NewsRepository(Repository):
         super().__init__()
 
 
-class FeedsRepository(Repository):
+class FeedRepository(Repository):
 
     def __init__(self):
         super().__init__()

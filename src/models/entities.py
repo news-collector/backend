@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass
@@ -13,19 +12,19 @@ class WebsiteEntity(object):
 @dataclass
 class NewsEntity(object):
 
-    news_id: int
     feed_id: int
     news_title: str
     news_link: str
     news_description: str
     news_img_link: str
-    publish_date: datetime
+    publish_date: str
+    news_id: int = None
 
 
 @dataclass
 class FeedEntity(object):
 
-    feed_id: int
     website_id: int
     feed_name: str
     feed_link: str
+    feed_id: int = None

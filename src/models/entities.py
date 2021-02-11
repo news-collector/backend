@@ -5,9 +5,9 @@ from datetime import datetime
 @dataclass
 class WebsiteEntity(object):
 
-    website_id: int
     website_name: str
     website_link: str
+    website_id: int = None
 
 
 @dataclass

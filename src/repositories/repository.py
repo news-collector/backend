@@ -11,7 +11,9 @@ from pypika import Table, Field, MySQLQuery as Query
 from pypika.dialects import QueryBuilder
 from mysql.connector.errors import Error as DBError
 import logging
+
 from typing import List, Dict, Type
+from datetime import datetime
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -164,8 +166,31 @@ class FeedRepository(Repository):
 
 class UserRepository(Repository):
 
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
     def __init__(self):
         field_list = make_fields(users, list(UserEntity.__annotations__.keys()))
         field_dict = {field.name: field for field in field_list}
         field_dict['id'] = field_dict.pop('user_id')
         super().__init__(users, field_dict, UserEntity)
+
+    def update_last_activity_time(self, last_activity_time: datetime, _id: int):
+        formatted_time = last_activity_time.strftime(self.DATE_FORMAT)
+
+        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
+        query = query_to_str(bare_query)
+
+        rows_count = 0
+
+        try:
+            self._cursor.execute(query)
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: update_last_activity_time -> [{e.errno}]{e.msg}")
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+            rows_count = self._cursor.rowcount
+            logging.info(f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
+
+        return rows_count
+

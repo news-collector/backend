@@ -7,7 +7,7 @@ from abc import abstractmethod
 
 from src.configs import db_config
 import mysql.connector as mysql
-from src.models.entities import WebsiteEntity, NewsEntity, FeedEntity
+from src.models.entities import WebsiteEntity, NewsEntity, FeedEntity, UserEntity
 from pypika import Table, Field, MySQLQuery as Query
 from pypika.dialects import QueryBuilder
 from mysql.connector.errors import Error as DBError
@@ -19,6 +19,7 @@ logging.getLogger().setLevel(logging.INFO)
 websites = Table('websites')
 news = Table('news')
 feeds = Table('rss_feeds')
+users = Table('users')
 
 
 def make_fields(table: Table, column_names: List[str]) -> List[Field]:
@@ -150,3 +151,12 @@ class FeedRepository(Repository):
         field_dict = {field.name: field for field in field_list}
         field_dict['id'] = field_dict.pop('feed_id')
         super().__init__(feeds, field_dict, FeedEntity)
+
+
+class UserRepository(Repository):
+
+    def __init__(self):
+        field_list = make_fields(users, list(UserEntity.__annotations__.keys()))
+        field_dict = {field.name: field for field in field_list}
+        field_dict['id'] = field_dict.pop('user_id')
+        super().__init__(users, field_dict, UserEntity)

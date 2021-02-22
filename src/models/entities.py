@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -28,3 +29,11 @@ class FeedEntity(object):
     feed_name: str
     feed_link: str
     feed_id: int = None
+
+
+@dataclass
+class UserEntity(object):
+
+    user_id: int
+    user_authkey: str
+    last_activity_time: datetime

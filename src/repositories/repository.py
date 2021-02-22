@@ -3,7 +3,6 @@ from dataclasses import asdict
 
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
-from abc import abstractmethod
 
 from src.configs import db_config
 import mysql.connector as mysql

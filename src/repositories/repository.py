@@ -43,26 +43,36 @@ class Repository(object):
         bare_query = Query.from_(self._table).select(self._table.star).where(self._fields['id'] == _id)
         query = query_to_str(bare_query)
 
-        self._cursor.execute(query)
-        record = self._cursor.fetchone()
+        record = None
 
-        if record:
-            record = self._entity(**record)
+        try:
+            self._cursor.execute(query)
+            record = self._cursor.fetchone()
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: get_by_id -> [{e.errno}]{e.msg}")
+        else:
+            if record:
+                record = self._entity(**record)
+            logging.info(f"Repository [{self._table}]: get_by_id -> Record for id={_id} is {record}")
 
-        logging.info(f"Repository [{self._table}]: get_by_id -> Record for id={_id} is {record}")
         return record
 
     def get_all(self):
         bare_query = Query.from_(self._table).select(self._table.star)
         query = query_to_str(bare_query)
 
-        self._cursor.execute(query)
-        records = self._cursor.fetchall()
+        records = None
 
-        if records:
-            records = [ self._entity(**record) for record in records]
+        try:
+            self._cursor.execute(query)
+            records = self._cursor.fetchall()
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: get_all -> [{e.errno}]{e.msg}")
+        else:
+            if records:
+                records = [self._entity(**record) for record in records]
+            logging.info(f"Repository [{self._table}]: get_all -> Found {len(records)} records")
 
-        logging.info(f"Repository [{self._table}]: get_all -> Found {len(records)} records")
         return records
 
     def delete_by_id(self, _id: int) -> int:

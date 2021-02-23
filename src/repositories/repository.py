@@ -15,6 +15,8 @@ import logging
 from typing import List, Dict, Type
 from datetime import datetime
 
+from src.parser.dateparser import DateParser
+
 logging.getLogger().setLevel(logging.INFO)
 
 websites = Table('websites')
@@ -166,8 +168,6 @@ class FeedRepository(Repository):
 
 class UserRepository(Repository):
 
-    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-
     def __init__(self):
         field_list = make_fields(users, list(UserEntity.__annotations__.keys()))
         field_dict = {field.name: field for field in field_list}
@@ -175,7 +175,7 @@ class UserRepository(Repository):
         super().__init__(users, field_dict, UserEntity)
 
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
-        formatted_time = last_activity_time.strftime(self.DATE_FORMAT)
+        formatted_time = DateParser.parse(last_activity_time)
 
         bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
         query = query_to_str(bare_query)

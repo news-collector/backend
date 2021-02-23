@@ -7,6 +7,8 @@ from src.parser.descriptionparser import DescriptionParser
 from src.repositories.repository import NewsRepository, FeedRepository
 import feedparser
 
+import logging
+
 
 class Service(object):
     pass
@@ -41,6 +43,8 @@ class NewsService(Service):
             news_from_feed = self.scrap_news_from_feed(feed)
             news_list = news_list + news_from_feed
 
+        logging.info(f"NewsService: scrap_news_from_all_feeds -> Scrapped {len(news_list)} news")
+
         return news_list
 
     def scrap_news_from_feed(self, feed: FeedEntity):
@@ -48,6 +52,9 @@ class NewsService(Service):
 
         news_list = [self.__news_entry_to_news_entity(entry, feed.feed_id)
                      for entry in feed_parsed.entries if self.__satisfies_parsing_condition(entry)]
+
+        logging.info(f"NewsService: scrap_news_from_feed ->"
+                     f" Scrapped {len(news_list)} news from feed with id = {feed.feed_id}")
 
         return news_list
 

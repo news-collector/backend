@@ -138,6 +138,34 @@ class Repository(object):
 
         return entity_id
 
+    def save_all(self, entities):
+        dict_copy = deepcopy(self._fields)
+        dict_copy.pop('id')
+
+        entities_as_dicts = [asdict(entity) for entity in entities]
+
+        query_builder = Query.into(self._table).columns(*dict_copy.values())
+
+        for entity_as_dict in entities_as_dicts:
+            entity_values = [entity_as_dict[key] for key in entity_as_dict if key in dict_copy]
+            query_builder = query_builder.insert(*entity_values)
+
+        query = query_to_str(query_builder)
+
+        rows_count = 0
+
+        try:
+            self._cursor.execute(query)
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: save_all -> [{e.errno}]{e.msg}")
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+            rows_count = self._cursor.rowcount
+            logging.info(f"Repository [{self._table}]: save_all -> Saved {rows_count} entities")
+
+        return rows_count
+
 
 class WebsiteRepository(Repository):
 

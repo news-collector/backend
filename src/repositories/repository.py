@@ -97,7 +97,7 @@ class Repository(object):
 
         return rows_count
 
-    def delete_all(self) -> int: # TODO check
+    def delete_all(self) -> int:  # TODO check
         bare_query = Query.from_(self._table).delete().where(self._fields['id'] > 0)
         query = query_to_str(bare_query)
 
@@ -185,7 +185,7 @@ class NewsRepository(Repository):
         field_dict['id'] = field_dict.pop('news_id')
         super().__init__(news, field_dict, NewsEntity)
 
-    def delete_outdated(self, days_interval=7):
+    def delete_outdated(self, days_interval: int = 7):
         bare_query = Query.from_(self._table).delete().where(
             fn.Now() > fn.Date(self._fields['publish_date'] + Interval(days=days_interval)))
         query = query_to_str(bare_query)

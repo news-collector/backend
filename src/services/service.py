@@ -75,9 +75,9 @@ class NewsService(Service):
         description = DescriptionParser.parse(entry["summary"]) if "summary" in entry else "No description provided."
 
         if "published_parsed" in entry:
-            publish_date = DateParser.parse_struct_time(entry["published_parsed"])
+            publish_date = DateParser.parse(entry["published_parsed"])
         else:
-            publish_date = DateParser.parse_datetime(datetime.now())
+            publish_date = DateParser.parse(datetime.now())
 
         news_image_link = ""
 

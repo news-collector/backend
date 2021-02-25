@@ -203,7 +203,7 @@ class UserRepository(Repository):
         super().__init__(users, field_dict, UserEntity)
 
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
-        formatted_time = DateParser.parse_datetime(last_activity_time)
+        formatted_time = DateParser.parse(last_activity_time)
 
         bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
         query = query_to_str(bare_query)

@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import struct_time, strftime
+from multipledispatch import dispatch
 
 
 class DateParser(object):
@@ -7,9 +8,11 @@ class DateParser(object):
     DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     @classmethod
-    def parse_datetime(cls, date: datetime):
+    @dispatch(type, datetime)
+    def parse(cls, date: datetime):
         return date.strftime(cls.DATE_FORMAT)
 
     @classmethod
-    def parse_struct_time(cls, date: struct_time):
+    @dispatch(type, struct_time)
+    def parse(cls, date: struct_time):
         return strftime(cls.DATE_FORMAT, date)

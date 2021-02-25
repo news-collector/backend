@@ -15,6 +15,8 @@ import logging
 from typing import List, Dict, Type
 from datetime import datetime
 
+from src.parser.dateparser import DateParser
+
 logging.getLogger().setLevel(logging.INFO)
 
 websites = Table('websites')
@@ -136,6 +138,34 @@ class Repository(object):
 
         return entity_id
 
+    def save_all(self, entities):
+        dict_copy = deepcopy(self._fields)
+        dict_copy.pop('id')
+
+        entities_as_dicts = [asdict(entity) for entity in entities]
+
+        query_builder = Query.into(self._table).columns(*dict_copy.values())
+
+        for entity_as_dict in entities_as_dicts:
+            entity_values = [entity_as_dict[key] for key in entity_as_dict if key in dict_copy]
+            query_builder = query_builder.insert(*entity_values)
+
+        query = query_to_str(query_builder)
+
+        rows_count = 0
+
+        try:
+            self._cursor.execute(query)
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: save_all -> [{e.errno}]{e.msg}")
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+            rows_count = self._cursor.rowcount
+            logging.info(f"Repository [{self._table}]: save_all -> Saved {rows_count} entities")
+
+        return rows_count
+
 
 class WebsiteRepository(Repository):
 
@@ -166,8 +196,6 @@ class FeedRepository(Repository):
 
 class UserRepository(Repository):
 
-    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-
     def __init__(self):
         field_list = make_fields(users, list(UserEntity.__annotations__.keys()))
         field_dict = {field.name: field for field in field_list}
@@ -175,7 +203,7 @@ class UserRepository(Repository):
         super().__init__(users, field_dict, UserEntity)
 
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
-        formatted_time = last_activity_time.strftime(self.DATE_FORMAT)
+        formatted_time = DateParser.parse(last_activity_time)
 
         bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
         query = query_to_str(bare_query)

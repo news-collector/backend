@@ -72,7 +72,11 @@ class NewsService(Service):
         return lower_boundary_time_diff > 0 and higher_boundary_time_diff > 0
 
     def __news_entry_to_news_entity(self, entry, feed_id):
-        description = DescriptionParser.parse(entry["summary"]) if "summary" in entry else "No description provided."
+
+        if "summary" in entry and (parsed_summary := DescriptionParser.parse(entry["summary"])) != "":
+            description = parsed_summary
+        else:
+            description = "No description provided."
 
         if "published_parsed" in entry:
             publish_date = DateParser.parse(entry["published_parsed"])

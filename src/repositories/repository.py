@@ -202,6 +202,24 @@ class UserRepository(Repository):
         field_dict['id'] = field_dict.pop('user_id')
         super().__init__(users, field_dict, UserEntity)
 
+    def get_by_authkey(self, authkey: str):
+        bare_query = Query.from_(self._table).select(self._table.star).where(self._fields['user_authkey'] == authkey)
+        query = query_to_str(bare_query)
+
+        record = None
+
+        try:
+            self._cursor.execute(query)
+            record = self._cursor.fetchone()
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: get_by_authkey -> [{e.errno}]{e.msg}")
+        else:
+            if record:
+                record = self._entity(**record)
+            logging.info(f"Repository [{self._table}]: get_by_authkey -> Record for authkey={authkey} is {record}")
+
+        return record
+
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
         formatted_time = DateParser.parse(last_activity_time)
 

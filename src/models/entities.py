@@ -17,7 +17,6 @@ class NewsEntity(object):
     news_title: str
     news_link: str
     news_description: str
-    news_img_link: str
     publish_date: str
     news_id: int = None
 

@@ -83,14 +83,11 @@ class NewsService(Service):
         else:
             publish_date = DateParser.parse(datetime.now())
 
-        news_image_link = ""
-
         return NewsEntity(
             feed_id,
             entry["title"],
             entry["link"],
             description,
-            news_image_link,
             publish_date
         )
 

@@ -204,6 +204,7 @@ class NewsRepository(Repository):
 
         return rows_count
 
+
 class FeedRepository(Repository):
 
     def __init__(self):
@@ -224,8 +225,7 @@ class UserRepository(Repository):
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
         formatted_time = DateParser.parse(last_activity_time)
 
-        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(
-            self._fields['id'] == _id)
+        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
         query = query_to_str(bare_query)
 
         rows_count = 0
@@ -238,7 +238,6 @@ class UserRepository(Repository):
         else:
             self._connection.commit()
             rows_count = self._cursor.rowcount
-            logging.info(
-                f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
+            logging.info(f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
 
         return rows_count

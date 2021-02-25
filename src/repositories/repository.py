@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import asdict
+from pypika import functions as fn, Interval
 
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -184,6 +185,24 @@ class NewsRepository(Repository):
         field_dict['id'] = field_dict.pop('news_id')
         super().__init__(news, field_dict, NewsEntity)
 
+    def delete_outdated(self, days_interval=7):
+        bare_query = Query.from_(self._table).delete().where(
+            fn.Now() > fn.Date(self._fields['publish_date'] + Interval(days=days_interval)))
+        query = query_to_str(bare_query)
+
+        rows_count = 0
+
+        try:
+            self._cursor.execute(query)
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: delete_outdated -> [{e.errno}]{e.msg}")
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+            rows_count = self._cursor.rowcount
+            logging.info(f"Repository [{self._table}]: delete_outdated -> Deleted {rows_count} record/s")
+
+        return rows_count
 
 class FeedRepository(Repository):
 
@@ -205,7 +224,8 @@ class UserRepository(Repository):
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
         formatted_time = DateParser.parse(last_activity_time)
 
-        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
+        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(
+            self._fields['id'] == _id)
         query = query_to_str(bare_query)
 
         rows_count = 0
@@ -218,7 +238,7 @@ class UserRepository(Repository):
         else:
             self._connection.commit()
             rows_count = self._cursor.rowcount
-            logging.info(f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
+            logging.info(
+                f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
 
         return rows_count
-

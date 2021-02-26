@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import asdict
+from pypika import functions as fn, Interval
 
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -96,7 +97,7 @@ class Repository(object):
 
         return rows_count
 
-    def delete_all(self) -> int: # TODO check
+    def delete_all(self) -> int:  # TODO check
         bare_query = Query.from_(self._table).delete().where(self._fields['id'] > 0)
         query = query_to_str(bare_query)
 
@@ -184,6 +185,25 @@ class NewsRepository(Repository):
         field_dict['id'] = field_dict.pop('news_id')
         super().__init__(news, field_dict, NewsEntity)
 
+    def delete_outdated(self, days_interval: int = 7):
+        news_expiry_date = fn.Now() - fn.Date(Interval(days=days_interval))
+        bare_query = Query.from_(self._table).delete().where(news_expiry_date > fn.Date(self._fields['publish_date']))
+        query = query_to_str(bare_query)
+
+        rows_count = 0
+
+        try:
+            self._cursor.execute(query)
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: delete_outdated -> [{e.errno}]{e.msg}")
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+            rows_count = self._cursor.rowcount
+            logging.info(f"Repository [{self._table}]: delete_outdated -> Deleted {rows_count} record/s")
+
+        return rows_count
+
 
 class FeedRepository(Repository):
 
@@ -239,4 +259,3 @@ class UserRepository(Repository):
             logging.info(f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
 
         return rows_count
-

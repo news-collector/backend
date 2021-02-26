@@ -30,6 +30,9 @@ class NewsService(Service):
         self.upper_publish_date_boundary = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         self.lower_publish_date_boundary = self.upper_publish_date_boundary - timedelta(days=1)
 
+    def delete_outdated(self):
+        return self._news_repository.delete_outdated()
+
     def scrap_and_save_news(self):
         news_list = self.scrap_news_from_all_feeds()
         return self._news_repository.save_all(news_list)

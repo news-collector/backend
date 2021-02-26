@@ -186,8 +186,8 @@ class NewsRepository(Repository):
         super().__init__(news, field_dict, NewsEntity)
 
     def delete_outdated(self, days_interval: int = 7):
-        bare_query = Query.from_(self._table).delete().where(
-            fn.Now() > fn.Date(self._fields['publish_date'] + Interval(days=days_interval)))
+        news_expiry_date = fn.Now() - fn.Date(Interval(days=days_interval))
+        bare_query = Query.from_(self._table).delete().where(news_expiry_date > fn.Date(self._fields['publish_date']))
         query = query_to_str(bare_query)
 
         rows_count = 0

@@ -11,6 +11,7 @@ mysql-connector-python = "*"
 feedparser = "*"
 requests = "*"
 multipledispatch = "*"
+pydictionary = "*"
 
 [requires]
 python_version = "3.8"

@@ -10,6 +10,7 @@ pypika = "*"
 mysql-connector-python = "*"
 feedparser = "*"
 requests = "*"
+multipledispatch = "*"
 
 [requires]
 python_version = "3.8"

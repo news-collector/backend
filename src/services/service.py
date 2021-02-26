@@ -4,9 +4,10 @@ from time import mktime
 from src.models.entities import FeedEntity, NewsEntity
 from src.parser.dateparser import DateParser
 from src.parser.descriptionparser import DescriptionParser
+from src.parser.newsparser import NewsParser
 from src.repositories.repository import NewsRepository, FeedRepository
 import feedparser
-
+from typing import List
 import logging
 
 
@@ -32,6 +33,10 @@ class NewsService(Service):
 
     def delete_outdated(self):
         return self._news_repository.delete_outdated()
+
+    def parse_saved_news_by_keywords(self, keywords: List[str], synonyms: bool = False):
+        news_list = self._news_repository.get_all()
+        return NewsParser.parse_news_by_keywords(news_list, keywords, synonyms)
 
     def scrap_and_save_news(self):
         news_list = self.scrap_news_from_all_feeds()

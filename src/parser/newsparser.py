@@ -29,7 +29,7 @@ class NewsParser(object):
     def __parse_news_by_keywords(cls, news_list: List[NewsEntity], keywords: List[str]):
         parsed_news_with_keywords = defaultdict(list)
         for news in news_list:
-            news_content = news.news_description + news.news_title
+            news_content = (news.news_description + news.news_title).lower()
             for keyword in keywords:
                 if cls.__news_content_contains_word(news_content, keyword):
                     parsed_news_with_keywords[news].append(keyword)

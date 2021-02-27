@@ -41,12 +41,14 @@ class NewsService(Service):
         else:
             ssl._create_default_https_context = _create_unverified_https_context
 
-
     def delete_outdated(self):
         return self._news_repository.delete_outdated()
 
-    def parse_saved_news_by_keywords(self, keywords: List[str], synonyms: bool = False):
-        news_list = self._news_repository.get_all()
+    def parse_saved_news_by_criteria(self, feeds_ids: List[int], keywords: List[str], synonyms: bool = False):
+        news_list = self._news_repository.get_by_feeds_ids(feeds_ids)
+        return self.__parse_saved_news_by_keywords(news_list, keywords, synonyms)
+
+    def __parse_saved_news_by_keywords(self, news_list: List[NewsEntity], keywords: List[str], synonyms: bool = False):
         news_hits = NewsParser.parse_news_by_keywords(news_list, keywords, synonyms)
         logging.info(f"NewsService: parse_saved_news_by_keywords -> Found {len(news_hits)} news,"
                      f" keywords = {keywords}, synonyms = {synonyms}")

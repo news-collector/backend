@@ -1,3 +1,4 @@
+import ssl
 from datetime import datetime, timedelta
 from time import mktime
 
@@ -28,15 +29,28 @@ class NewsService(Service):
     def __init__(self):
         self._feed_repository = FeedRepository()
         self._news_repository = NewsRepository()
-        self.upper_publish_date_boundary = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        self.lower_publish_date_boundary = self.upper_publish_date_boundary - timedelta(days=1)
+        self._upper_publish_date_boundary = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        self._lower_publish_date_boundary = self._upper_publish_date_boundary - timedelta(days=1)
+        self.__avoid_certificate_verification()
+
+    def __avoid_certificate_verification(self):
+        try:
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            pass
+        else:
+            ssl._create_default_https_context = _create_unverified_https_context
+
 
     def delete_outdated(self):
         return self._news_repository.delete_outdated()
 
     def parse_saved_news_by_keywords(self, keywords: List[str], synonyms: bool = False):
         news_list = self._news_repository.get_all()
-        return NewsParser.parse_news_by_keywords(news_list, keywords, synonyms)
+        news_hits = NewsParser.parse_news_by_keywords(news_list, keywords, synonyms)
+        logging.info(f"NewsService: parse_saved_news_by_keywords -> Found {len(news_hits)} news,"
+                     f" keywords = {keywords}, synonyms = {synonyms}")
+        return news_hits
 
     def scrap_and_save_news(self):
         news_list = self.scrap_news_from_all_feeds()
@@ -75,12 +89,12 @@ class NewsService(Service):
             return entry["title"] and self.__is_date_in_boundaries(publish_datetime)
 
     def __is_date_in_boundaries(self, date: datetime) -> bool:
-        lower_boundary_time_diff = (date - self.lower_publish_date_boundary).total_seconds()
-        higher_boundary_time_diff = (self.upper_publish_date_boundary - date).total_seconds()
+        lower_boundary_time_diff = (date - self._lower_publish_date_boundary).total_seconds()
+        higher_boundary_time_diff = (self._upper_publish_date_boundary - date).total_seconds()
         return lower_boundary_time_diff > 0 and higher_boundary_time_diff > 0
 
-    def __news_entry_to_news_entity(self, entry, feed_id):
-
+    @staticmethod
+    def __news_entry_to_news_entity(entry, feed_id):
         if "summary" in entry and (parsed_summary := DescriptionParser.parse(entry["summary"])) != "":
             description = parsed_summary
         else:

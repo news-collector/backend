@@ -4,7 +4,7 @@ from time import mktime
 from src.models.entities import FeedEntity, NewsEntity
 from src.parser.dateparser import DateParser
 from src.parser.descriptionparser import DescriptionParser
-from src.repositories.repository import NewsRepository, FeedRepository
+from src.repositories.repository import NewsRepository, FeedRepository, UserRepository
 import feedparser
 
 import logging
@@ -15,7 +15,18 @@ class Service(object):
 
 
 class UserService(Service):
-    pass
+
+    def __init__(self):
+        self._user_repository = UserRepository()
+        self._user_timeout_duration = timedelta(minutes=5)
+
+    def is_user_timed_out(self, user_authkey: str) -> bool:
+        user = self._user_repository.get_by_authkey(user_authkey)
+
+        if user.last_activity_time:
+            return user.last_activity_time < datetime.now() - self._user_timeout_duration
+
+        return True
 
 
 class FeedService(Service):

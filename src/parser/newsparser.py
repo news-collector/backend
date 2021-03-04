@@ -31,17 +31,10 @@ class NewsParser(object):
         for news in news_list:
             news_content = (news.news_description + news.news_title).lower()
             for keyword in keywords:
-                if cls.__news_content_contains_word(news_content, keyword):
+                if cls.__news_content_contains_any_word(news_content, [keyword]):
                     parsed_news_with_keywords[news].append(keyword)
         return parsed_news_with_keywords
 
     @classmethod
-    def __news_content_contains_word(cls, news_content: str, word: str) -> bool:
-        return True if word in news_content else False
-
-    @classmethod
     def __news_content_contains_any_word(cls, news_content: str, words_list: List[str]) -> bool:
-        for word in words_list:
-            if cls.__news_content_contains_word(news_content, word):
-                return True
-        return False
+        return any([word in news_content for word in words_list])

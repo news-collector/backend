@@ -185,6 +185,24 @@ class NewsRepository(Repository):
         field_dict['id'] = field_dict.pop('news_id')
         super().__init__(news, field_dict, NewsEntity)
 
+    def get_by_feeds_ids(self, feeds_ids: List[int]):
+        bare_query = Query.from_(self._table).select(self._table.star).where(self._fields['feed_id'].isin(feeds_ids))
+        query = query_to_str(bare_query)
+
+        records = None
+
+        try:
+            self._cursor.execute(query)
+            records = self._cursor.fetchall()
+        except DBError as e:
+            logging.error(f"Repository [{self._table}]: get_by_feeds_ids -> [{e.errno}]{e.msg}")
+        else:
+            if records:
+                records = [self._entity(**record) for record in records]
+            logging.info(f"Repository [{self._table}]: get_by_feeds_ids -> Found {len(records)} records")
+
+        return records
+
     def delete_outdated(self, days_interval: int = 7):
         news_expiry_date = fn.Now() - fn.Date(Interval(days=days_interval))
         bare_query = Query.from_(self._table).delete().where(news_expiry_date > fn.Date(self._fields['publish_date']))
@@ -243,7 +261,8 @@ class UserRepository(Repository):
     def update_last_activity_time(self, last_activity_time: datetime, _id: int):
         formatted_time = DateParser.parse(last_activity_time)
 
-        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(self._fields['id'] == _id)
+        bare_query = Query.update(users).set(self._fields['last_activity_time'], formatted_time).where(
+            self._fields['id'] == _id)
         query = query_to_str(bare_query)
 
         rows_count = 0
@@ -256,6 +275,7 @@ class UserRepository(Repository):
         else:
             self._connection.commit()
             rows_count = self._cursor.rowcount
-            logging.info(f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
+            logging.info(
+                f"Repository [{self._table}]: update_last_activity_time -> updated last activity time for user with id = {_id}")
 
         return rows_count

@@ -10,7 +10,7 @@ class WebsiteEntity(object):
     website_id: int = None
 
 
-@dataclass
+@dataclass(frozen=True, eq=True)
 class NewsEntity(object):
 
     feed_id: int
